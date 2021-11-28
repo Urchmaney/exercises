@@ -1,4 +1,4 @@
-package urls-hort
+package urlshort
 
 import (
 	"net/http"
@@ -6,8 +6,8 @@ import (
 )
 
 type UrlMap struct {
-  path string `yaml:path`
-  url string `yaml:url`
+  path string `yaml:"path"`
+  url string `yaml:"url"`
 }
 
 type UrlMaps struct {
@@ -21,15 +21,15 @@ type UrlMaps struct {
 // If the path is not provided in the map, then the fallback
 // http.Handler will be called instead.
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
-	//	TODO: Implement this...
-	return htt.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
-    redirect_url := pathToUrls[r.URL.Path]
-    if redirect_url != nil {
-      http.Redirect(w, r, redirect_url, http.StatusSeeOther)
-    } else {
-      fallback
-    }
-  })
+	//	TODO: Implement this... 
+    return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+      redirect_url := pathsToUrls[r.URL.Path]
+      if redirect_url != "" {
+        http.Redirect(w, r, redirect_url, http.StatusSeeOther)
+      } else {
+        fallback.ServeHTTP(w, r)
+      }
+    })
 }
 
 // YAMLHandler will parse the provided YAML and then return
@@ -49,7 +49,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-  parsedYaml, err := parseYAML(yaml)
+  parsedYaml, err := parseYAML(yml)
   if err != nil {
     return nil, err
   }
@@ -57,21 +57,18 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
   return MapHandler(pathMap, fallback), nil
 }
 
-func parsedYaml(yml []byte) (UrlMaps, err) {
-  var maps UrlMaps
-  err = yaml.Unmarshal(yamlFile, &map)
+func parseYAML(yml []byte) ([]UrlMap, error) {
+  var maps []UrlMap
+  err := yaml.Unmarshal(yml, &maps)
   if err != nil {
-    return nil, err
+    return maps, err
   }
   return maps, nil
 }
 
-func buildMap(data UrlMaps) map[string] string {
-  if data == nil {
-    return nil
-  }
-  path_to_url = make(map[string] string)
-  for _, v := range data.maps {
+func buildMap(data []UrlMap) map[string] string {
+  path_to_url := make(map[string] string)
+  for _, v := range data {
     path_to_url[v.path] = v.url
   }
   return path_to_url
