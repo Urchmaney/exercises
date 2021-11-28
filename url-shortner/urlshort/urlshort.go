@@ -6,12 +6,8 @@ import (
 )
 
 type UrlMap struct {
-  path string `yaml:"path"`
-  url string `yaml:"url"`
-}
-
-type UrlMaps struct {
-  maps []UrlMap 
+  Path string
+  Url string
 }
 
 // MapHandler will return an http.HandlerFunc (which also
@@ -69,7 +65,7 @@ func parseYAML(yml []byte) ([]UrlMap, error) {
 func buildMap(data []UrlMap) map[string] string {
   path_to_url := make(map[string] string)
   for _, v := range data {
-    path_to_url[v.path] = v.url
+    path_to_url[v.Path] = v.Url
   }
   return path_to_url
 }
