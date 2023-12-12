@@ -33,4 +33,6 @@ func main() {
 
 		compressor.FrequencyCalculator(string(buffer), &freq)
 	}
+
+	(compressor.GenerateHuffmanBinaryTreeFromFrequency(freq))
 }
