@@ -6,42 +6,83 @@ import (
 )
 
 type Node struct {
-	val   int
-	char  rune
-	left  *Node
-	right *Node
+	Val   int
+	Char  rune
+	Left  *Node
+	Right *Node
 }
 
-func FrequencyCalculator(val string, freq *map[rune]int) {
+type CharFreq struct {
+	Freq int
+	Code string
+}
+
+func FrequencyCalculator(val string, freq *map[rune]*CharFreq) {
 	for _, s := range val {
-		(*freq)[s] += 1
+		data := (*freq)[s]
+		if data == nil {
+			(*freq)[s] = &CharFreq{Freq: 1, Code: ""}
+			continue
+		}
+		data.Freq += 1
 	}
 }
 
-func GenerateHuffmanBinaryTreeFromFrequency(freq map[rune]int) Node {
+func GenerateHuffmanBinaryTreeFromFrequency(freq map[rune]*CharFreq) Node {
 	var nodeArr []Node
 	for k, v := range freq {
-		nodeArr = append(nodeArr, Node{val: v, char: k})
+		nodeArr = append(nodeArr, Node{Val: v.Freq, Char: k})
 	}
+
 	sort.Slice(nodeArr, func(i, j int) bool {
-		return nodeArr[i].val < nodeArr[j].val
+		return nodeArr[i].Val < nodeArr[j].Val
 	})
 
 	for len(nodeArr) > 1 {
-		newNode := Node{val: nodeArr[0].val + nodeArr[1].val, left: &nodeArr[0], right: &nodeArr[1]}
+		newNode := Node{Val: nodeArr[0].Val + nodeArr[1].Val, Left: &nodeArr[0], Right: &nodeArr[1]}
 
 		nodeArr = addNodeToSortedPosition(newNode, nodeArr[2:])
 	}
-	for _, v := range nodeArr {
-		fmt.Println(v.val)
+
+	if len(nodeArr) == 0 {
+		return Node{Val: 0}
 	}
+
 	return nodeArr[0]
+}
+
+func AddPrefixCode(freq map[rune]*CharFreq, root Node) {
+	for k, v := range freq {
+		v.Code = *FindCode(&root, k)
+	}
+}
+
+func FindCode(node *Node, char rune) *string {
+	result := ""
+	if node == nil {
+		return nil
+	}
+	if node.Char == char {
+		return &result
+	}
+	leftResult := FindCode(node.Left, char)
+	rightResult := FindCode(node.Right, char)
+
+	if leftResult == nil && rightResult == nil {
+		return nil
+	} else if leftResult != nil {
+		result = fmt.Sprintf("%v%v", 0, *leftResult)
+		return &result
+	} else {
+		result = fmt.Sprintf("%v%v", 1, *rightResult)
+		return &result
+	}
 }
 
 func addNodeToSortedPosition(n Node, arr []Node) []Node {
 	var position int
 	for ; position < len(arr); position++ {
-		if arr[position].val > n.val {
+		if arr[position].Val > n.Val {
 			break
 		}
 	}

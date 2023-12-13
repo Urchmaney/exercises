@@ -18,7 +18,7 @@ func main() {
 		panic(fmt.Sprintf("Error Opening file with name '%v'", fileName))
 	}
 
-	freq := make(map[rune]int)
+	freq := make(map[rune]*compressor.CharFreq)
 
 	buffer := make([]byte, 32*1024)
 
@@ -34,5 +34,10 @@ func main() {
 		compressor.FrequencyCalculator(string(buffer), &freq)
 	}
 
-	(compressor.GenerateHuffmanBinaryTreeFromFrequency(freq))
+	root := compressor.GenerateHuffmanBinaryTreeFromFrequency(freq)
+	compressor.AddPrefixCode(freq, root)
+	for _, v := range freq {
+		fmt.Println(v.Code)
+	}
+
 }
