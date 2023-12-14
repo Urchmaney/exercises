@@ -1,7 +1,10 @@
 package compressor
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"sort"
 )
 
@@ -77,6 +80,134 @@ func FindCode(node *Node, char rune) *string {
 		result = fmt.Sprintf("%v%v", 1, *rightResult)
 		return &result
 	}
+}
+
+func WriteFileHeader(freq map[rune]*CharFreq, fileName string) {
+	file, err := os.OpenFile(fileName, os.O_CREATE, 0777)
+	if err != nil {
+		panic("Error Writing File Header")
+	}
+	defer file.Close()
+	file.WriteString("=Header=>\n")
+	for k, v := range freq {
+		file.WriteString(fmt.Sprintf("%v|%v|%v\n", k, v.Freq, v.Code))
+	}
+	file.WriteString("<=Header=\n")
+}
+
+func EncryptInputFile(inputFile, outputFile string, lookup map[rune]*CharFreq) {
+	fmt.Println("Encryption started")
+	rfile, err := os.Open(inputFile)
+	if err != nil {
+		panic(fmt.Sprintf("Error Opening file with name '%v'", inputFile))
+	}
+	wfile, errw := os.OpenFile(outputFile, os.O_APPEND, 0777)
+	if errw != nil {
+		panic("Error Writing File Header")
+	}
+	defer wfile.Close()
+
+	buffer := make([]byte, 32*1024)
+	for {
+		_, rerr := rfile.Read(buffer)
+		for _, chr := range string(buffer) {
+			code := lookup[chr].Code
+			wfile.WriteString(code)
+		}
+		if rerr == io.EOF {
+			break
+		} else if rerr != nil {
+			fmt.Println("Error encoding file from file", err)
+			return
+		}
+
+	}
+
+}
+
+func DecryptCompressedFile(fileName string, node Node) {
+	fmt.Println("Decryption Started=================")
+	decryptFile := "decryted.txt"
+	rfile, err := os.Open(fileName)
+	if err != nil {
+		panic(fmt.Sprintf("Error Opening file with name '%v'", fileName))
+	}
+	wfile, errw := os.OpenFile(decryptFile, os.O_CREATE, 0777)
+	if errw != nil {
+		panic("Error Writing File Header")
+	}
+	defer wfile.Close()
+
+	buffer := make([]byte, 32*1024)
+	hasFinihedHeader := false
+
+	count := 0
+
+	for {
+		_, rerr := rfile.Read(buffer)
+		if rerr == io.EOF {
+			break
+		} else if rerr != nil {
+			fmt.Println("Error encoding file from file", rerr)
+			return
+		}
+		if !hasFinihedHeader {
+			splitted := bytes.Split(buffer, []byte{'\n'})
+
+			for _, s := range splitted {
+				data := string(s)
+				if data == "<=Header=" {
+					hasFinihedHeader = true
+				}
+
+				if hasFinihedHeader {
+					decryptStringAndWrtite(*wfile, data, node)
+				}
+			}
+		} else {
+			decryptStringAndWrtite(*wfile, string(buffer), node)
+		}
+
+		count += 1
+		fmt.Printf(" %v==\n", (count))
+
+	}
+	// _, rerr := rfile.Read(buffer)
+	// if rerr != nil {
+	// 	panic("Error")
+	// }
+
+	// splitted := bytes.Split(buffer, []byte{'\n'})
+
+	// for _, s := range splitted {
+	// 	data := string(s)
+	// 	fmt.Println(data, "========")
+	// 	if data == "<=Header=" {
+	// 		fmt.Println("Foound")
+	// 	}
+	// }
+}
+
+func decryptStringAndWrtite(file os.File, s string, node Node) {
+	sLen := len(s)
+	index := 0
+	for index < sLen {
+		n := node
+		for index < sLen {
+
+			if s[index] == '0' {
+				n = *n.Left
+			} else {
+				n = *n.Right
+			}
+			index += 1
+			if n.Char != 0 {
+				break
+			}
+		}
+		file.WriteString(string(n.Char))
+	}
+	fmt.Println("end")
 }
 
 func addNodeToSortedPosition(n Node, arr []Node) []Node {
