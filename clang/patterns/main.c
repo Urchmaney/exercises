@@ -6,7 +6,7 @@ int getlinen(char [], int);
 
 int strindex(char [], char []);
 
-char pattern[] = "ould";
+static char pattern[] = "ould";
 
 int main() {
     char line[MAXLINE];
