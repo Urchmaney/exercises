@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	compressor "../../../go-exercises/compressor"
+	compressor "../../../go-exercises/golang/compressor"
 )
 
 func main() {
