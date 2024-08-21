@@ -1,0 +1,18 @@
+<header>
+  <h2> The Pizza Project </h2>
+</header>
+
+<main>
+  <% @tasks.each do |task|%>
+    <div class="list_container">
+      <p class="list_header"> <%= task[:name]%>
+        <%= link_to "+ Add", new_task_path(list_id: @tasks.find {|t| t[:name] == 'To do' }&.dig(:id)), data: { turbo_frame: 'modal' }, class: "add_button" %>
+      </p>
+      <div>
+        <% task[:cards]&.each do |card| %>
+          <p class="card"><%= card%></p>
+        <%end%>
+      </div>
+    </div>
+  <%end%>
+</main>

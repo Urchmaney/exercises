@@ -1,0 +1,14 @@
+<%= turbo_frame_tag "modal" do %>
+  <%= tag.div id: "create-modal", data: { controller: "turbo-modal", action: "click@window->turbo-modal#closeBackground" } do %>
+    <%= form_with url: 'tasks' do |form| %>
+      <%= form.hidden_field :list_id, value: @list_id %>
+      <div>
+        <p>
+          <%= form.label :name, "Name:" %>
+        </p>        
+        <%= form.text_field :name %>
+      <div>
+      <%= form.submit "Submit" %>
+    <% end %>
+  <% end %>
+<% end %>
